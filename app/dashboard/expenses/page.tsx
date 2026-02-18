@@ -7,20 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ExpensesTable } from "@/components/expenses/expenses-table"
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog"
+import { YearPicker } from "@/components/ui/year-picker"
 
 export default function ExpensesPage() {
     const currentDate = new Date()
     const [year, setYear] = useState(currentDate.getFullYear().toString())
     const [month, setMonth] = useState((currentDate.getMonth() + 1).toString())
+    const [refreshKey, setRefreshKey] = useState(0)
     const [addDialogOpen, setAddDialogOpen] = useState(false)
 
     const handleExpenseAdded = () => {
-        // This will trigger a re-fetch in ExpensesTable if we force it, 
-        // but for now relying on the page refresh or state lift logic.
-        // Ideally, we should pass a refresh trigger to ExpensesTable.
-        // For this implementation, we'll try to just close the dialog.
-        // A full refresh might be needed or a context based refresh.
-        window.location.reload() // Simple refresh for now to ensure data consistency
+        setRefreshKey(prev => prev + 1)
+        setAddDialogOpen(false)
     }
 
     return (
@@ -38,21 +36,17 @@ export default function ExpensesPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-4">
-                <div className="w-32">
-                    <Select value={year} onValueChange={setYear}>
-                        <SelectTrigger className="bg-background">
-                            <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="2024">2024</SelectItem>
-                            <SelectItem value="2025">2025</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="w-40">
+            <div className="flex items-center space-x-4">
+                <YearPicker 
+                    value={year} 
+                    onValueChange={setYear} 
+                    className="w-32" 
+                />
+
+                <div className="flex items-center space-x-2">
+                    <label className="text-sm font-medium">Month:</label>
                     <Select value={month} onValueChange={setMonth}>
-                        <SelectTrigger className="bg-background">
+                        <SelectTrigger className="w-32 bg-background">
                             <SelectValue placeholder="Month" />
                         </SelectTrigger>
                         <SelectContent>
@@ -74,7 +68,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Expenses Table */}
-            <ExpensesTable year={year} month={month} />
+            <ExpensesTable key={`${year}-${month}-${refreshKey}`} year={year} month={month} />
 
             {/* Add Expense Dialog */}
             <AddExpenseDialog
